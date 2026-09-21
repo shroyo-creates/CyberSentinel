@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}WAF Dashboard{% endblock %}
+{% block content %}
+    <h1>WAF Detection Dashboard</h1>
+    <p>Total blocked attempts: <strong>{{ total }}</strong></p>
+
+    <div class="summary-grid">
+        <div class="summary-card sqli">
+            <h2>{{ summary['SQL Injection'] }}</h2>
+            <p>SQL Injection</p>
+        </div>
+        <div class="summary-card xss">
+            <h2>{{ summary['XSS'] }}</h2>
+            <p>XSS</p>
+        </div>
+        <div class="summary-card traversal">
+            <h2>{{ summary['Path Traversal'] }}</h2>
+            <p>Path Traversal</p>
+        </div>
+    </div>
+
+    <h2>Blocked Attempts (most recent first)</h2>
+
+    {% if logs %}
+        <table class="log-table">
+            <thead>
+                <tr>
+                    <th>Time (UTC)</th>
+                    <th>Attack Type</th>
+                    <th>Matched Pattern</th>
+                    <th>Payload</th>
+                    <th>Source IP</th>
+                    <th>Blocked URL</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in logs %}
+                    <tr>
+                        <td>{{ entry.timestamp }}</td>
+                        <td><span class="tag tag-{{ entry.attack_type | replace(' ', '-') | lower }}">{{ entry.attack_type }}</span></td>
+                        <td>{{ entry.matched_pattern }}</td>
+                        <td><code>{{ entry.payload }}</code></td>
+                        <td>{{ entry.source_ip }}</td>
+                        <td><code>{{ entry.blocked_url }}</code></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No attacks blocked yet. Try running <code>./test_attacks.sh</code> to generate some.</p>
+    {% endif %}
+{% endblock %}

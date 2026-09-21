@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Search{% endblock %}
+{% block content %}
+    <h1>Search</h1>
+
+    <form method="GET" class="form">
+        <label for="q">Search query</label>
+        <input type="text" id="q" name="q" value="{{ query or '' }}" placeholder="Type something...">
+        <button type="submit">Search</button>
+    </form>
+
+    {% if results %}
+        <div class="result-box">{{ results }}</div>
+    {% endif %}
+
+    <p class="hint">
+        Try a clean search first, then try an XSS payload like
+        <code>&lt;script&gt;alert(1)&lt;/script&gt;</code> to see the WAF block it.
+    </p>
+{% endblock %}
