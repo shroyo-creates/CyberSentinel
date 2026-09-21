@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}CyberSentinel - Home{% endblock %}
+{% block content %}
+    <h1>Welcome to CyberSentinel</h1>
+    <p>
+        This is a deliberately simple "vulnerable" demo app protected by a
+        custom-built Web Application Firewall (WAF). The WAF inspects every
+        request <strong>before</strong> it reaches the pages below, and blocks
+        anything that looks like SQL Injection, XSS, or Path Traversal.
+    </p>
+
+    <div class="card-grid">
+        <a class="card" href="{{ url_for('login') }}">
+            <h2>Login</h2>
+            <p>Try submitting the username/password form.</p>
+        </a>
+        <a class="card" href="{{ url_for('search') }}">
+            <h2>Search</h2>
+            <p>Try searching for something.</p>
+        </a>
+        <a class="card" href="{{ url_for('fetch') }}">
+            <h2>Fetch File</h2>
+            <p>Try fetching a file by name.</p>
+        </a>
+        <a class="card" href="{{ url_for('dashboard') }}">
+            <h2>Dashboard</h2>
+            <p>See every attack the WAF has blocked.</p>
+        </a>
+    </div>
+
+    <p>
+        Want to see the WAF in action? Run <code>./test_attacks.sh</code>
+        (with the server running) to fire sample SQLi, XSS, and Path
+        Traversal payloads at these endpoints.
+    </p>
+{% endblock %}

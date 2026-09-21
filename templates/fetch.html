@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Fetch File{% endblock %}
+{% block content %}
+    <h1>Fetch File</h1>
+
+    <form method="GET" class="form">
+        <label for="file">File name</label>
+        <input type="text" id="file" name="file" value="{{ filename or '' }}" placeholder="e.g. report.txt">
+        <button type="submit">Fetch</button>
+    </form>
+
+    {% if content %}
+        <div class="result-box">{{ content }}</div>
+    {% endif %}
+
+    <p class="hint">
+        Try a clean filename first, then try a Path Traversal payload like
+        <code>../../../../etc/passwd</code> to see the WAF block it.
+    </p>
+{% endblock %}

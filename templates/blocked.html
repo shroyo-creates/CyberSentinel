@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}403 - Blocked by WAF{% endblock %}
+{% block content %}
+    <div class="blocked-box">
+        <h1>🚫 Blocked by WAF</h1>
+        <p>This request was identified as a potential attack and was rejected before reaching the application.</p>
+
+        <table class="detail-table">
+            <tr><th>Attack type</th><td>{{ attack_type }}</td></tr>
+            <tr><th>Matched pattern</th><td>{{ matched_pattern }}</td></tr>
+            <tr><th>Source</th><td>{{ source }}</td></tr>
+            <tr><th>Payload</th><td><code>{{ payload }}</code></td></tr>
+        </table>
+
+        <p class="hint">
+            (These details are shown here for learning purposes. A real-world
+            WAF would usually just return a generic 403 to avoid giving
+            attackers feedback about which rule they tripped.)
+        </p>
+
+        <p><a href="{{ url_for('dashboard') }}">View this attempt on the dashboard &rarr;</a></p>
+    </div>
+{% endblock %}
