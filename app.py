@@ -32,7 +32,7 @@ import os
 from collections import Counter
 from functools import wraps
 
-from flask import Flask, request, render_template, redirect, url_for, session
+from flask import Flask, request, render_template, redirect, url_for, session, jsonify
 
 import settings
 from database import init_db, check_login_vulnerable, check_login_safe
@@ -62,7 +62,7 @@ init_db()
 
 
 def admin_required(view):
-    """Decorator: redirect to /admin/login unless an admin is logged in."""
+    """Decorator for normal pages: redirect to /admin/login unless logged in."""
 
     @wraps(view)
     def wrapped(*args, **kwargs):
@@ -71,6 +71,67 @@ def admin_required(view):
         return view(*args, **kwargs)
 
     return wrapped
+
+
+def api_admin_required(view):
+    """
+    Decorator for /api/* routes: a redirect makes no sense for a fetch()
+    call, so return a JSON 401 instead. The React dashboard checks for
+    this and sends the browser to /admin/login itself.
+    """
+
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if not session.get("is_admin"):
+            return jsonify({"error": "unauthorized"}), 401
+        return view(*args, **kwargs)
+
+    return wrapped
+
+
+def build_dashboard_payload():
+    """
+    Gather everything the dashboard needs: the raw attack log, a
+    per-attack-type summary, a per-day timeline, the top source IPs,
+    and the latest evaluate_waf.py benchmark (if one has been run).
+    Used by both the /dashboard page (admin_required) and the
+    /api/dashboard JSON endpoint (api_admin_required) that the React
+    app polls.
+    """
+    logs = get_attack_logs()
+
+    summary = {"SQL Injection": 0, "XSS": 0, "Path Traversal": 0}
+    for entry in logs:
+        attack_type = entry.get("attack_type")
+        if attack_type in summary:
+            summary[attack_type] += 1
+
+    # Attacks-per-day timeline, e.g. [{"date": "2026-09-21", "count": 6}, ...]
+    day_counts = Counter(entry.get("timestamp", "")[:10] for entry in logs if entry.get("timestamp"))
+    timeline = [{"date": day, "count": count} for day, count in sorted(day_counts.items())]
+
+    # Top source IPs, e.g. [{"ip": "127.0.0.1", "count": 4}, ...]
+    ip_counts = Counter(entry.get("source_ip", "unknown") for entry in logs)
+    top_ips = [{"ip": ip, "count": count} for ip, count in ip_counts.most_common(5)]
+
+    benchmark = None
+    if os.path.exists(BENCHMARK_RESULTS_FILE):
+        with open(BENCHMARK_RESULTS_FILE) as f:
+            try:
+                benchmark = json.load(f)
+            except json.JSONDecodeError:
+                benchmark = None
+
+    return {
+        "logs": logs,
+        "summary": summary,
+        "total": len(logs),
+        "timeline": timeline,
+        "top_ips": top_ips,
+        "benchmark": benchmark,
+        "waf_enabled": settings.waf_enabled,
+        "query_mode": settings.query_mode,
+    }
 
 
 @app.route("/")
@@ -183,51 +244,34 @@ def admin_settings():
 @admin_required
 def dashboard():
     """
-    The WAF detection dashboard. Reads every blocked attack from the
-    JSON log file and displays a table, a per-attack-type count, a
-    per-day timeline chart, a top-source-IP chart, and (if available)
-    the latest dataset benchmark results from evaluate_waf.py.
+    The WAF detection dashboard. This route only renders the page shell
+    (templates/dashboard.html) - the actual data (attack log, summary,
+    charts, benchmark) is fetched client-side by the React app from
+    /api/dashboard, and refreshed automatically every few seconds.
     """
-    logs = get_attack_logs()
+    return render_template("dashboard.html")
 
-    summary = {"SQL Injection": 0, "XSS": 0, "Path Traversal": 0}
-    for entry in logs:
-        attack_type = entry.get("attack_type")
-        if attack_type in summary:
-            summary[attack_type] += 1
 
-    # --- Attacks-per-day timeline (plain CSS bar chart, no JS needed) ---
-    day_counts = Counter(entry.get("timestamp", "")[:10] for entry in logs if entry.get("timestamp"))
-    timeline = sorted(day_counts.items())  # chronological, e.g. [("2026-09-21", 6), ...]
-    max_day_count = max((count for _, count in timeline), default=0)
+@app.route("/api/dashboard")
+@api_admin_required
+def api_dashboard():
+    """JSON data source for the React dashboard. Polled every few seconds."""
+    return jsonify(build_dashboard_payload())
 
-    # --- Top source IPs ---
-    ip_counts = Counter(entry.get("source_ip", "unknown") for entry in logs)
-    top_ips = ip_counts.most_common(5)
-    max_ip_count = max((count for _, count in top_ips), default=0)
 
-    # --- Latest dataset benchmark results, if evaluate_waf.py has been run ---
-    benchmark = None
-    if os.path.exists(BENCHMARK_RESULTS_FILE):
-        with open(BENCHMARK_RESULTS_FILE) as f:
-            try:
-                benchmark = json.load(f)
-            except json.JSONDecodeError:
-                benchmark = None
+@app.route("/api/admin/settings", methods=["POST"])
+@api_admin_required
+def api_admin_settings():
+    """Toggle the demo switches described in settings.py, JSON in/out."""
+    action = (request.get_json(silent=True) or {}).get("action")
+    if action == "toggle_waf":
+        settings.waf_enabled = not settings.waf_enabled
+    elif action == "toggle_query_mode":
+        settings.query_mode = "vulnerable" if settings.query_mode == "safe" else "safe"
+    else:
+        return jsonify({"error": "unknown action"}), 400
 
-    return render_template(
-        "dashboard.html",
-        logs=logs,
-        summary=summary,
-        total=len(logs),
-        timeline=timeline,
-        max_day_count=max_day_count,
-        top_ips=top_ips,
-        max_ip_count=max_ip_count,
-        benchmark=benchmark,
-        waf_enabled=settings.waf_enabled,
-        query_mode=settings.query_mode,
-    )
+    return jsonify({"waf_enabled": settings.waf_enabled, "query_mode": settings.query_mode})
 
 
 if __name__ == "__main__":

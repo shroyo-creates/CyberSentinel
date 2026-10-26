@@ -1,126 +1,19 @@
-{% extends "base.html" %}
-{% block title %}WAF Dashboard{% endblock %}
-{% block content %}
-    <h1>WAF Detection Dashboard</h1>
-    <p>
-        Total blocked attempts: <strong>{{ total }}</strong>
-        &nbsp;|&nbsp;
-        WAF: <strong class="{{ 'status-on' if waf_enabled else 'status-off' }}">{{ "ON" if waf_enabled else "OFF" }}</strong>
-        &nbsp;|&nbsp;
-        Query mode: <strong>{{ query_mode | upper }}</strong>
-        &nbsp;(<a href="{{ url_for('admin_settings') }}">settings</a>)
-    </p>
-
-    <div class="summary-grid">
-        <div class="summary-card sqli">
-            <h2>{{ summary['SQL Injection'] }}</h2>
-            <p>SQL Injection</p>
-        </div>
-        <div class="summary-card xss">
-            <h2>{{ summary['XSS'] }}</h2>
-            <p>XSS</p>
-        </div>
-        <div class="summary-card traversal">
-            <h2>{{ summary['Path Traversal'] }}</h2>
-            <p>Path Traversal</p>
-        </div>
-    </div>
-
-    {% if timeline %}
-        <h2>Attacks per Day</h2>
-        <div class="bar-chart">
-            {% for day, count in timeline %}
-                <div class="bar-row">
-                    <span class="bar-label">{{ day }}</span>
-                    <div class="bar-track">
-                        <div class="bar-fill" style="width: {{ (count / max_day_count * 100) if max_day_count else 0 }}%;"></div>
-                    </div>
-                    <span class="bar-count">{{ count }}</span>
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-
-    {% if top_ips %}
-        <h2>Top Source IPs</h2>
-        <div class="bar-chart">
-            {% for ip, count in top_ips %}
-                <div class="bar-row">
-                    <span class="bar-label">{{ ip }}</span>
-                    <div class="bar-track">
-                        <div class="bar-fill ip-fill" style="width: {{ (count / max_ip_count * 100) if max_ip_count else 0 }}%;"></div>
-                    </div>
-                    <span class="bar-count">{{ count }}</span>
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-
-    {% if benchmark %}
-        <h2>Detection Accuracy Benchmark</h2>
-        <p class="hint" style="margin-top: 0;">
-            From the last run of <code>python evaluate_waf.py</code> against
-            <code>dataset/test_payloads.json</code> ({{ benchmark.total }} labeled payloads).
-        </p>
-        <div class="summary-grid">
-            <div class="summary-card">
-                <h2>{{ "%.1f"|format(benchmark.accuracy * 100) }}%</h2>
-                <p>Overall Accuracy</p>
-            </div>
-            <div class="summary-card">
-                <h2>{{ benchmark.correct }}/{{ benchmark.total }}</h2>
-                <p>Correctly Classified</p>
-            </div>
-        </div>
-        <table class="log-table">
-            <thead>
-                <tr><th>Class</th><th>Precision</th><th>Recall</th><th>F1 Score</th><th>Support</th></tr>
-            </thead>
-            <tbody>
-                {% for class_name, metrics in benchmark.per_class.items() %}
-                    <tr>
-                        <td>{{ class_name }}</td>
-                        <td>{{ "%.2f"|format(metrics.precision) }}</td>
-                        <td>{{ "%.2f"|format(metrics.recall) }}</td>
-                        <td>{{ "%.2f"|format(metrics.f1) }}</td>
-                        <td>{{ metrics.support }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <h2>Detection Accuracy Benchmark</h2>
-        <p>No benchmark run yet. Run <code>python evaluate_waf.py</code> to score the WAF against a labeled dataset.</p>
-    {% endif %}
-
-    <h2>Blocked Attempts (most recent first)</h2>
-
-    {% if logs %}
-        <table class="log-table">
-            <thead>
-                <tr>
-                    <th>Time (UTC)</th>
-                    <th>Attack Type</th>
-                    <th>Matched Pattern</th>
-                    <th>Payload</th>
-                    <th>Source IP</th>
-                    <th>Blocked URL</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for entry in logs %}
-                    <tr>
-                        <td>{{ entry.timestamp }}</td>
-                        <td><span class="tag tag-{{ entry.attack_type | replace(' ', '-') | lower }}">{{ entry.attack_type }}</span></td>
-                        <td>{{ entry.matched_pattern }}</td>
-                        <td><code>{{ entry.payload }}</code></td>
-                        <td>{{ entry.source_ip }}</td>
-                        <td><code>{{ entry.blocked_url }}</code></td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p>No attacks blocked yet. Try running <code>./test_attacks.sh</code> to generate some.</p>
-    {% endif %}
-{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WAF Dashboard - CyberSentinel</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard/app.css') }}">
+</head>
+<body>
+    <!--
+        This page is intentionally a near-empty shell. The dashboard itself
+        is a React app (see frontend/) built by `npm run build` into
+        static/dashboard/app.js, which mounts into #root below and fetches
+        its data from /api/dashboard. See frontend/README.md (or the main
+        README) for the dev workflow.
+    -->
+    <div id="root"></div>
+    <script type="module" src="{{ url_for('static', filename='dashboard/app.js') }}"></script>
+</body>
+</html>
