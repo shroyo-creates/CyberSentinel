@@ -1,6 +1,21 @@
 import { useState } from "react";
 import { postSetting } from "../api.js";
 
+function ToggleRow({ title, statusText, statusClass, checked, disabled, onToggle }) {
+  return (
+    <div className="toggle-row">
+      <div className="toggle-row-label">
+        <span className="toggle-row-title">{title}</span>
+        <span className={`toggle-row-status ${statusClass}`}>{statusText}</span>
+      </div>
+      <label className="switch">
+        <input type="checkbox" checked={checked} disabled={disabled} onChange={onToggle} />
+        <span className="switch-track" />
+      </label>
+    </div>
+  );
+}
+
 export default function SettingsPanel({ wafEnabled, queryMode, onChange }) {
   const [busy, setBusy] = useState(false);
 
@@ -16,38 +31,31 @@ export default function SettingsPanel({ wafEnabled, queryMode, onChange }) {
 
   return (
     <div className="panel">
-      <h2>Demo Settings</h2>
-      <p className="status-line" style={{ marginTop: 0 }}>
-        Two independent layers of defense. Try a payload like{" "}
-        <code>' OR '1'='1' --</code> on <a href="/login">/login</a> in each combination below.
+      <div className="panel-head">
+        <h2>Demo Settings</h2>
+      </div>
+      <p className="panel-note">
+        Two independent layers of defense. Try <code>' OR '1'='1' --</code> on{" "}
+        <a href="/login">/login</a> in each combination.
       </p>
 
       <div className="settings-grid">
-        <div className="panel settings-card" style={{ marginBottom: 0 }}>
-          <h3>WAF</h3>
-          <p>
-            Status:{" "}
-            <strong className={wafEnabled ? "status-on" : "status-off"}>
-              {wafEnabled ? "ENABLED" : "DISABLED"}
-            </strong>
-          </p>
-          <button disabled={busy} onClick={() => toggle("toggle_waf")}>
-            {wafEnabled ? "Disable WAF" : "Enable WAF"}
-          </button>
-        </div>
-
-        <div className="panel settings-card" style={{ marginBottom: 0 }}>
-          <h3>Login Query Mode</h3>
-          <p>
-            Mode:{" "}
-            <strong className={queryMode === "vulnerable" ? "status-off" : "status-on"}>
-              {queryMode.toUpperCase()}
-            </strong>
-          </p>
-          <button disabled={busy} onClick={() => toggle("toggle_query_mode")}>
-            Switch to {queryMode === "vulnerable" ? "SAFE" : "VULNERABLE"}
-          </button>
-        </div>
+        <ToggleRow
+          title="Web Application Firewall"
+          statusText={wafEnabled ? "ENABLED" : "DISABLED"}
+          statusClass={wafEnabled ? "status-on" : "status-off"}
+          checked={wafEnabled}
+          disabled={busy}
+          onToggle={() => toggle("toggle_waf")}
+        />
+        <ToggleRow
+          title="Login query mode"
+          statusText={queryMode.toUpperCase()}
+          statusClass={queryMode === "vulnerable" ? "status-off" : "status-on"}
+          checked={queryMode === "vulnerable"}
+          disabled={busy}
+          onToggle={() => toggle("toggle_query_mode")}
+        />
       </div>
     </div>
   );

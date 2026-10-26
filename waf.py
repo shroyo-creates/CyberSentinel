@@ -26,6 +26,14 @@ from datetime import datetime, timezone
 from flask import request, render_template
 
 import settings
+from traffic import log_request
+
+# Only these routes count toward the "traffic" the dashboard shows -
+# they're the actual attack surface being demonstrated. Admin pages and
+# the dashboard's own API polling are deliberately excluded so the
+# traffic chart reflects attacker-facing activity, not the admin using
+# their own tool.
+PUBLIC_ROUTES = {"/", "/login", "/search", "/fetch"}
 
 # ---------------------------------------------------------------------------
 # 1. DETECTION RULES
@@ -211,14 +219,20 @@ def init_waf(app):
         if request.path.startswith("/static/"):
             return None
 
+        is_public = request.path in PUBLIC_ROUTES
+
         # Admin demo toggle (see settings.py): lets you show, live, what
         # happens to the SAME malicious request with the WAF turned off.
         if not settings.waf_enabled:
+            if is_public:
+                log_request(request.path, blocked=False, attack_type=None, source_ip=request.remote_addr)
             return None
 
         detection = inspect_request(request)
         if detection is None:
             # Nothing suspicious found - let Flask continue to the route.
+            if is_public:
+                log_request(request.path, blocked=False, attack_type=None, source_ip=request.remote_addr)
             return None
 
         # Something matched an attack pattern - log it and block the request.
@@ -229,6 +243,9 @@ def init_waf(app):
             source_ip=request.remote_addr,
             blocked_url=request.full_path if request.query_string else request.path,
         )
+
+        if is_public:
+            log_request(request.path, blocked=True, attack_type=entry["attack_type"], source_ip=request.remote_addr)
 
         return (
             render_template(

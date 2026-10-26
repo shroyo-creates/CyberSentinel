@@ -37,6 +37,7 @@ from flask import Flask, request, render_template, redirect, url_for, session, j
 import settings
 from database import init_db, check_login_vulnerable, check_login_safe
 from waf import init_waf, get_attack_logs
+from traffic import get_traffic_stats
 
 app = Flask(__name__)
 
@@ -91,24 +92,27 @@ def api_admin_required(view):
 
 def build_dashboard_payload():
     """
-    Gather everything the dashboard needs: the raw attack log, a
-    per-attack-type summary, a per-day timeline, the top source IPs,
-    and the latest evaluate_waf.py benchmark (if one has been run).
-    Used by both the /dashboard page (admin_required) and the
-    /api/dashboard JSON endpoint (api_admin_required) that the React
-    app polls.
+    Gather everything the dashboard needs: overall traffic stats (total
+    requests inspected / blocked / block rate, and a minute-by-minute
+    timeline of allowed vs blocked), the raw attack log, a per-attack-type
+    summary, the top matched regex patterns, the top source IPs, and the
+    latest evaluate_waf.py benchmark (if one has been run). Used by both
+    the /dashboard page (admin_required) and the /api/dashboard JSON
+    endpoint (api_admin_required) that the React app polls.
     """
     logs = get_attack_logs()
+    traffic = get_traffic_stats()
 
     summary = {"SQL Injection": 0, "XSS": 0, "Path Traversal": 0}
     for entry in logs:
         attack_type = entry.get("attack_type")
         if attack_type in summary:
             summary[attack_type] += 1
+    attack_distribution = [{"name": name, "value": count} for name, count in summary.items()]
 
-    # Attacks-per-day timeline, e.g. [{"date": "2026-09-21", "count": 6}, ...]
-    day_counts = Counter(entry.get("timestamp", "")[:10] for entry in logs if entry.get("timestamp"))
-    timeline = [{"date": day, "count": count} for day, count in sorted(day_counts.items())]
+    # Which specific regex rule fires most often.
+    pattern_counts = Counter(entry.get("matched_pattern", "unknown") for entry in logs)
+    top_patterns = [{"pattern": pattern, "count": count} for pattern, count in pattern_counts.most_common(5)]
 
     # Top source IPs, e.g. [{"ip": "127.0.0.1", "count": 4}, ...]
     ip_counts = Counter(entry.get("source_ip", "unknown") for entry in logs)
@@ -125,8 +129,13 @@ def build_dashboard_payload():
     return {
         "logs": logs,
         "summary": summary,
+        "attack_distribution": attack_distribution,
+        "top_patterns": top_patterns,
         "total": len(logs),
-        "timeline": timeline,
+        "total_requests": traffic["total_requests"],
+        "total_allowed": traffic["total_allowed"],
+        "block_rate": traffic["block_rate"],
+        "traffic_timeline": traffic["timeline"],
         "top_ips": top_ips,
         "benchmark": benchmark,
         "waf_enabled": settings.waf_enabled,

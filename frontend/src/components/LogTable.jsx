@@ -9,7 +9,7 @@ function tagClass(attackType) {
 export default function LogTable({ logs }) {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
-  const [sortDir, setSortDir] = useState("desc"); // logs already arrive newest-first from the API
+  const [sortDir, setSortDir] = useState("desc");
 
   const filtered = useMemo(() => {
     let rows = logs;
@@ -39,7 +39,9 @@ export default function LogTable({ logs }) {
 
   return (
     <div className="panel">
-      <h2>Blocked Attempts ({filtered.length})</h2>
+      <div className="panel-head">
+        <h2>Blocked Attempts ({filtered.length})</h2>
+      </div>
 
       <div className="toolbar">
         <input
@@ -63,32 +65,34 @@ export default function LogTable({ logs }) {
             : "No attempts match this filter."}
         </p>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              <th onClick={() => setSortDir(sortDir === "desc" ? "asc" : "desc")}>
-                Time (UTC) {sortDir === "desc" ? "↓" : "↑"}
-              </th>
-              <th>Attack Type</th>
-              <th>Matched Pattern</th>
-              <th>Payload</th>
-              <th>Source IP</th>
-              <th>Blocked URL</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((entry, i) => (
-              <tr key={i}>
-                <td>{entry.timestamp}</td>
-                <td><span className={tagClass(entry.attack_type)}>{entry.attack_type}</span></td>
-                <td>{entry.matched_pattern}</td>
-                <td><code>{entry.payload}</code></td>
-                <td>{entry.source_ip}</td>
-                <td><code>{entry.blocked_url}</code></td>
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th onClick={() => setSortDir(sortDir === "desc" ? "asc" : "desc")}>
+                  Time (UTC) {sortDir === "desc" ? "↓" : "↑"}
+                </th>
+                <th>Type</th>
+                <th>Matched Pattern</th>
+                <th>Payload</th>
+                <th>Source IP</th>
+                <th>Blocked URL</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filtered.map((entry, i) => (
+                <tr key={i}>
+                  <td className="timestamp">{entry.timestamp}</td>
+                  <td><span className={tagClass(entry.attack_type)}>{entry.attack_type}</span></td>
+                  <td className="wrap">{entry.matched_pattern}</td>
+                  <td className="mono wrap">{entry.payload}</td>
+                  <td className="mono">{entry.source_ip}</td>
+                  <td className="mono wrap">{entry.blocked_url}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

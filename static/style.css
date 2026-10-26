@@ -1,4 +1,19 @@
-/* CyberSentinel - minimal plain CSS, no framework */
+/* CyberSentinel - minimal plain CSS, no framework.
+   Palette matches the React dashboard (frontend/src/index.css) so the
+   plain Flask pages and the dashboard feel like one app. */
+
+:root {
+    --bg: #0a0e14;
+    --panel: #10151d;
+    --panel-border: #212830;
+    --text: #c9d1d9;
+    --text-dim: #7d8590;
+    --accent-blue: #4493f8;
+    --accent-red: #f85149;
+    --accent-amber: #d29922;
+    --accent-cyan: #39c5cf;
+    --accent-purple: #bc8cff;
+}
 
 * {
     box-sizing: border-box;
@@ -7,33 +22,35 @@
 body {
     font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
     margin: 0;
-    background: #0f172a;
-    color: #e2e8f0;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
 }
 
 .topbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 2rem;
-    background: #111827;
-    border-bottom: 1px solid #1f2937;
+    padding: 0.85rem 1.5rem;
+    background: var(--panel);
+    border-bottom: 1px solid var(--panel-border);
 }
 
 .brand {
-    font-weight: bold;
-    font-size: 1.25rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
 }
 
 nav a {
-    color: #93c5fd;
+    color: var(--text-dim);
     text-decoration: none;
     margin-left: 1.25rem;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
 }
 
 nav a:hover {
-    text-decoration: underline;
+    color: var(--text);
 }
 
 .content {
@@ -44,14 +61,16 @@ nav a:hover {
 
 h1 {
     margin-top: 0;
+    font-size: 1.3rem;
 }
 
 code {
-    background: #1e293b;
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    background: #161b22;
     padding: 0.15rem 0.4rem;
     border-radius: 4px;
-    font-size: 0.9em;
-    color: #fbbf24;
+    font-size: 0.85em;
+    color: var(--accent-amber);
 }
 
 .card-grid {
@@ -63,8 +82,8 @@ code {
 
 .card {
     display: block;
-    background: #1e293b;
-    border: 1px solid #334155;
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
     border-radius: 8px;
     padding: 1rem;
     color: inherit;
@@ -72,7 +91,7 @@ code {
 }
 
 .card:hover {
-    border-color: #60a5fa;
+    border-color: var(--accent-blue);
 }
 
 .card h2 {
@@ -82,7 +101,7 @@ code {
 
 .card p {
     margin: 0;
-    color: #94a3b8;
+    color: var(--text-dim);
     font-size: 0.9rem;
 }
 
@@ -96,16 +115,16 @@ code {
 
 .form label {
     font-size: 0.85rem;
-    color: #94a3b8;
+    color: var(--text-dim);
     margin-top: 0.5rem;
 }
 
 .form input {
     padding: 0.6rem;
     border-radius: 6px;
-    border: 1px solid #334155;
-    background: #0b1220;
-    color: #e2e8f0;
+    border: 1px solid var(--panel-border);
+    background: #0d1117;
+    color: var(--text);
 }
 
 .form button {
@@ -113,33 +132,33 @@ code {
     padding: 0.6rem;
     border: none;
     border-radius: 6px;
-    background: #2563eb;
-    color: white;
+    background: var(--accent-blue);
+    color: #0a0e14;
     font-weight: 600;
     cursor: pointer;
 }
 
 .form button:hover {
-    background: #1d4ed8;
+    background: #6cb0ff;
 }
 
 .result-box {
     margin-top: 1rem;
     padding: 0.75rem 1rem;
-    background: #14532d;
-    border: 1px solid #22c55e;
+    background: #0d2416;
+    border: 1px solid #238636;
     border-radius: 6px;
 }
 
 .hint {
-    color: #94a3b8;
+    color: var(--text-dim);
     font-size: 0.9rem;
     margin-top: 2rem;
 }
 
 .blocked-box {
-    background: #450a0a;
-    border: 1px solid #ef4444;
+    background: #2d1214;
+    border: 1px solid var(--accent-red);
     border-radius: 8px;
     padding: 1.5rem;
 }
@@ -153,13 +172,13 @@ code {
 .detail-table th, .detail-table td {
     text-align: left;
     padding: 0.4rem 0.6rem;
-    border-bottom: 1px solid #7f1d1d;
+    border-bottom: 1px solid var(--panel-border);
     vertical-align: top;
 }
 
 .detail-table th {
     width: 160px;
-    color: #fca5a5;
+    color: #ffb4ab;
 }
 
 .summary-grid {
@@ -170,8 +189,8 @@ code {
 }
 
 .summary-card {
-    background: #1e293b;
-    border: 1px solid #334155;
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
     border-radius: 8px;
     padding: 1rem;
     text-align: center;
@@ -180,66 +199,73 @@ code {
 .summary-card h2 {
     margin: 0;
     font-size: 2rem;
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
 }
 
 .summary-card p {
     margin: 0.25rem 0 0 0;
-    color: #94a3b8;
+    color: var(--text-dim);
 }
 
-.summary-card.sqli { border-top: 4px solid #f97316; }
-.summary-card.xss { border-top: 4px solid #a855f7; }
-.summary-card.traversal { border-top: 4px solid #06b6d4; }
+.summary-card.sqli { border-top: 2px solid var(--accent-amber); }
+.summary-card.xss { border-top: 2px solid var(--accent-purple); }
+.summary-card.traversal { border-top: 2px solid var(--accent-cyan); }
 
 .log-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 1rem;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 .log-table th, .log-table td {
     text-align: left;
     padding: 0.5rem 0.6rem;
-    border-bottom: 1px solid #1f2937;
+    border-bottom: 1px solid var(--panel-border);
 }
 
 .log-table th {
-    color: #94a3b8;
+    color: var(--text-dim);
     font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
 }
 
 .tag {
-    padding: 0.2rem 0.5rem;
-    border-radius: 999px;
-    font-size: 0.75rem;
+    display: inline-block;
+    padding: 0.1rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.72rem;
     font-weight: 600;
     white-space: nowrap;
+    border-left: 2px solid;
+    background: rgba(255, 255, 255, 0.04);
 }
 
-.tag-sql-injection { background: #7c2d12; color: #fdba74; }
-.tag-xss { background: #581c87; color: #d8b4fe; }
-.tag-path-traversal { background: #164e63; color: #67e8f9; }
+.tag-sql-injection { color: var(--accent-amber); border-color: var(--accent-amber); }
+.tag-xss { color: var(--accent-purple); border-color: var(--accent-purple); }
+.tag-path-traversal { color: var(--accent-cyan); border-color: var(--accent-cyan); }
 
 .footer {
     text-align: center;
-    color: #64748b;
-    font-size: 0.85rem;
+    color: #565d68;
+    font-size: 0.8rem;
     padding: 2rem 1rem;
 }
 
 /* --- Status badges (WAF on/off, query mode) --- */
 .status-line {
-    color: #94a3b8;
-    font-size: 0.9rem;
+    color: var(--text-dim);
+    font-size: 0.85rem;
 }
 
-.status-on { color: #4ade80; }
-.status-off { color: #f87171; }
+.status-on { color: #3fb950; }
+.status-off { color: var(--accent-red); }
 
 .error-box {
-    background: #450a0a;
-    border-color: #ef4444;
+    background: #2d1214;
+    border-color: var(--accent-red);
 }
 
 /* --- Admin settings cards --- */
@@ -251,8 +277,8 @@ code {
 }
 
 .settings-card {
-    background: #1e293b;
-    border: 1px solid #334155;
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
     border-radius: 8px;
     padding: 1rem;
 }
@@ -267,58 +293,12 @@ code {
     padding: 0.5rem 0.9rem;
     border: none;
     border-radius: 6px;
-    background: #2563eb;
-    color: white;
+    background: var(--accent-blue);
+    color: #0a0e14;
     font-weight: 600;
     cursor: pointer;
 }
 
 .settings-card button:hover {
-    background: #1d4ed8;
-}
-
-/* --- Plain-CSS bar charts (no JS/chart library needed) --- */
-.bar-chart {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    margin: 1rem 0 2rem 0;
-}
-
-.bar-row {
-    display: grid;
-    grid-template-columns: 140px 1fr 40px;
-    align-items: center;
-    gap: 0.75rem;
-    font-size: 0.85rem;
-}
-
-.bar-label {
-    color: #94a3b8;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.bar-track {
-    background: #1e293b;
-    border-radius: 4px;
-    height: 18px;
-    overflow: hidden;
-}
-
-.bar-fill {
-    background: #2563eb;
-    height: 100%;
-    border-radius: 4px;
-    min-width: 2px;
-}
-
-.bar-fill.ip-fill {
-    background: #06b6d4;
-}
-
-.bar-count {
-    text-align: right;
-    color: #e2e8f0;
+    background: #6cb0ff;
 }
