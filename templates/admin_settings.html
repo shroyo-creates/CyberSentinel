@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Admin Settings{% endblock %}
+{% block content %}
+    <h1>Demo Settings</h1>
+    <p>
+        These two switches exist to demonstrate <strong>defense in depth</strong>:
+        the WAF is one layer, and writing safe (parameterized) SQL queries
+        is another, independent layer. Try the combinations below against
+        <a href="{{ url_for('login') }}">/login</a> with a payload like
+        <code>' OR '1'='1' --</code> in the username field.
+    </p>
+
+    <div class="settings-grid">
+        <form method="POST" class="settings-card">
+            <h2>WAF</h2>
+            <p>Status: <strong class="{{ 'status-on' if waf_enabled else 'status-off' }}">
+                {{ "ENABLED" if waf_enabled else "DISABLED" }}
+            </strong></p>
+            <input type="hidden" name="action" value="toggle_waf">
+            <button type="submit">{{ "Disable WAF" if waf_enabled else "Enable WAF" }}</button>
+        </form>
+
+        <form method="POST" class="settings-card">
+            <h2>Login Query Mode</h2>
+            <p>Mode: <strong class="{{ 'status-off' if query_mode == 'vulnerable' else 'status-on' }}">
+                {{ query_mode | upper }}
+            </strong></p>
+            <input type="hidden" name="action" value="toggle_query_mode">
+            <button type="submit">
+                Switch to {{ "SAFE (parameterized)" if query_mode == "vulnerable" else "VULNERABLE (raw SQL)" }}
+            </button>
+        </form>
+    </div>
+
+    <table class="detail-table" style="margin-top: 2rem;">
+        <tr><th>WAF</th><th>Query Mode</th><th>Result of SQLi payload on /login</th></tr>
+        <tr><td>Enabled</td><td>Either</td><td>Blocked with 403 before it reaches /login at all</td></tr>
+        <tr><td>Disabled</td><td>Safe</td><td>Reaches /login, but the parameterized query rejects it - login fails</td></tr>
+        <tr><td>Disabled</td><td>Vulnerable</td><td>Reaches /login, raw SQL is manipulated - login succeeds (bypass!)</td></tr>
+    </table>
+
+    <p class="hint"><a href="{{ url_for('dashboard') }}">&larr; Back to dashboard</a></p>
+{% endblock %}

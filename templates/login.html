@@ -2,25 +2,42 @@
 {% block title %}Login{% endblock %}
 {% block content %}
     <h1>Login</h1>
-    <p>Demo form only - no real authentication or database behind this.</p>
+
+    <p class="status-line">
+        WAF: <strong class="{{ 'status-on' if waf_enabled else 'status-off' }}">{{ "ON" if waf_enabled else "OFF" }}</strong>
+        &nbsp;|&nbsp;
+        Query mode: <strong class="{{ 'status-off' if query_mode == 'vulnerable' else 'status-on' }}">{{ query_mode | upper }}</strong>
+        &nbsp;(<a href="{{ url_for('admin_settings') }}">change in admin settings</a>)
+    </p>
+
+    <p>Backed by a real SQLite <code>users</code> table. Demo accounts: <code>admin / admin123</code>, <code>alice / wonderland</code>.</p>
 
     <form method="POST" class="form">
         <label for="username">Username</label>
         <input type="text" id="username" name="username" placeholder="e.g. admin">
 
         <label for="password">Password</label>
-        <input type="password" id="password" name="password" placeholder="e.g. password123">
+        <input type="password" id="password" name="password" placeholder="e.g. admin123">
 
         <button type="submit">Log In</button>
     </form>
 
     {% if message %}
-        <div class="result-box">{{ message }}</div>
+        <div class="result-box {{ 'error-box' if 'failed' in message.lower() else '' }}">{{ message }}</div>
+    {% endif %}
+
+    {% if executed_query %}
+        <div class="result-box">
+            <strong>Query actually executed:</strong><br>
+            <code>{{ executed_query }}</code>
+        </div>
     {% endif %}
 
     <p class="hint">
-        Try a clean login first, then try a SQL Injection payload like
-        <code>admin' OR '1'='1</code> in the username field to see the WAF
-        block it.
+        With the WAF ON (default), try username <code>' OR '1'='1' --</code> -
+        it gets blocked before this page even runs. Go to
+        <a href="{{ url_for('admin_settings') }}">admin settings</a> to turn
+        the WAF off and switch between SAFE and VULNERABLE query mode to see
+        why both layers matter.
     </p>
 {% endblock %}

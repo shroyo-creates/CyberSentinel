@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Admin Login{% endblock %}
+{% block content %}
+    <h1>Admin Login</h1>
+    <p>Sign in to view the WAF dashboard and demo settings.</p>
+
+    <form method="POST" class="form">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" placeholder="admin">
+
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="waf-admin123">
+
+        <button type="submit">Log In</button>
+    </form>
+
+    {% if error %}
+        <div class="result-box error-box">{{ error }}</div>
+    {% endif %}
+
+    <p class="hint">
+        Demo credentials: <code>admin</code> / <code>waf-admin123</code>
+        (hardcoded for this project - never do this in a real app).
+    </p>
+{% endblock %}

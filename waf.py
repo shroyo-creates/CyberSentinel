@@ -25,6 +25,8 @@ from datetime import datetime, timezone
 
 from flask import request, render_template
 
+import settings
+
 # ---------------------------------------------------------------------------
 # 1. DETECTION RULES
 # ---------------------------------------------------------------------------
@@ -207,6 +209,11 @@ def init_waf(app):
         # Don't inspect requests for static assets (CSS/JS/images) - they
         # aren't user input and would just waste CPU cycles.
         if request.path.startswith("/static/"):
+            return None
+
+        # Admin demo toggle (see settings.py): lets you show, live, what
+        # happens to the SAME malicious request with the WAF turned off.
+        if not settings.waf_enabled:
             return None
 
         detection = inspect_request(request)
